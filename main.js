@@ -14,7 +14,7 @@ function main() {
     let score = 0;
     let scoreBoard = document.getElementById("scoreBoard");
     let nextTetrominoBoard = document.getElementById("nextTetromino");
-    let gameSpeed = 1;
+    let gameSpeed = 600;
     let a = 1;
 
     createBlocks(gameBoardWidth, gameBoardHeight);
@@ -467,7 +467,6 @@ function main() {
     }
 
     function calculateBestTetrominoPostion(aiBoard, currentTetrominoRotations, nextTetrominoRotations) {
-        debugger
         let grades = [];
         for (let i = 0; i < currentTetrominoRotations.length; i++) {
             
@@ -619,6 +618,9 @@ function main() {
     }
 
     let tetrominoSpawned = true
+    let aiRotation = 0 
+    let aiYPosition = 0
+    let i = 0
     function loop(timestamp) {
         let lastFrameDuration = timestamp - lastDraw;
         let gameOver = gameShouldEnd(currentTetrominoPosition, gameBoard, gameBoardWidth, gameBoardHeight, currentTetromino, scoreCounter, scoreBoard);
@@ -639,20 +641,50 @@ function main() {
             if (tetrominoSpawned) {
                 let aiGameBoard = copyBoard(gameBoard);
                 let aiBestPosition = calculateBestTetrominoPostion(aiGameBoard, currentTetrominoRotations, tetrominosRotations[nextTetromi])
-                currentTetrominoPosition.y = aiBestPosition.y
-                currentTetromino = currentTetrominoRotations[aiBestPosition.rotation]
+                aiYPosition = aiBestPosition.y
+                aiRotation = aiBestPosition.rotation
                 tetrominoSpawned = false
+            }
+            
+            if (i == aiRotation) {
+                currentTetromino = currentTetrominoRotations[aiRotation]
+            }
+            else {
+            currentTetromino = currentTetrominoRotations[i]
+            i++
+            }
+
+            if (aiYPosition <= 6) {
+                if (aiYPosition == currentTetrominoPosition.y) {
+                    currentTetrominoPosition.y = aiYPosition
+                }
+                else {
+                    currentTetrominoPosition.y -= 1
+                }
+                
+            }
+            else {
+                if (aiYPosition == currentTetrominoPosition.y) {
+                    currentTetrominoPosition.y = aiYPosition
+                }
+                else {
+                    currentTetrominoPosition.y += 1
+                }
             }
 
             let nextTetrominoPosition = {
                 x: currentTetrominoPosition.x + 1,
                 y: currentTetrominoPosition.y
             };
+            if (currentTetrominoPosition.x >= 4)
+                gameSpeed = 10
+            else {
+                gameSpeed = 600
+            }
             let collision = checkCollision(nextTetrominoPosition, gameBoard, currentTetromino);
 
             if (!collision) {
                 currentTetrominoPosition = nextTetrominoPosition;
-
                 drawGameBoard(gameBoard, gameBoardWidth, gameBoardHeight);
                 drawTetromino(currentTetrominoPosition, currentTetromino, gameBoardWidth);
             }
@@ -679,6 +711,9 @@ function main() {
                 nextTetromi = nextTetromino(index, a);
                 rotationOrientation = 1;
                 tetrominoSpawned = true
+                i = 0
+                aiRotation = 0
+                aiYPosition = 0
             }
 
             msCounter = 0;
@@ -708,9 +743,9 @@ function createBlocks(gameBoardWidth, gameBoardHeight) {
         }
         gameContainer.appendChild(rowNode);
     }
-    gameContainer.firstChild.style.visibility = "hidden";
-    gameContainer.children[1].style.visibility = "hidden";
-    gameContainer.children[2].style.visibility = "hidden";
+    //gameContainer.firstChild.style.visibility = "hidden";
+    //gameContainer.children[1].style.visibility = "hidden";
+    //gameContainer.children[2].style.visibility = "hidden";
 
 }
 
@@ -936,11 +971,11 @@ function breakeRows(gameBoard, gameBoardWidth, gameBoardHeight, counter, rowsToB
         }
         rowsToBeBroken--;
     }
-    countScore(score, rowsToBeBroken, scoreBoard);
+    countScore(score, scoreBoard);
 }
 
-function countScore(score, scoreCounter, scoreBoard) {
-    let rez = parseInt(scoreBoard.innerHTML) + scoreCounter;
+function countScore(score, scoreBoard) {
+    let rez = parseInt(scoreBoard.innerHTML) + score;
     scoreBoard.innerHTML = rez;
 }
 
